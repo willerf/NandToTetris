@@ -1,0 +1,29 @@
+// File name: projects/01/Bus1To16.hdl
+
+CHIP Bus1To16 {
+    IN in;
+    OUT out[16];
+
+    PARTS:
+    // Put your code here:
+    Bus(in=in, out=out[0]);
+    Bus(in=in, out=out[1]);
+    Bus(in=in, out=out[2]);
+    Bus(in=in, out=out[3]);
+
+    Bus(in=in, out=out[4]);
+    Bus(in=in, out=out[5]);
+    Bus(in=in, out=out[6]);
+    Bus(in=in, out=out[7]);
+
+    Bus(in=in, out=out[8]);
+    Bus(in=in, out=out[9]);
+    Bus(in=in, out=out[10]);
+    Bus(in=in, out=out[11]);
+
+    Bus(in=in, out=out[12]);
+    Bus(in=in, out=out[13]);
+    Bus(in=in, out=out[14]);
+    Bus(in=in, out=out[15]);
+
+}

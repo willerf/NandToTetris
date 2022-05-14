@@ -1,0 +1,10 @@
+// File name: projects/01/Bus.hdl
+
+CHIP Bus {
+    IN in;
+    OUT out;
+
+    PARTS:
+    // Put your code here:
+    And(a=in, b=in, out=out);
+}
