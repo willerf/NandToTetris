@@ -3,7 +3,7 @@
 import java.io.*;
 import java.util.ArrayList;
 
-class VMAssembler {
+class VMTranslator {
 
     private static int eqTags = 0;
     private static int gtTags = 0;
@@ -31,6 +31,8 @@ class VMAssembler {
 
     public static ArrayList<String> pushCommand(String seg, int value) {
         ArrayList<String> assembly = new ArrayList<>();
+
+        assembly.add("// processing: push " + seg + " " + value);
 
         if(seg.equals("local") || seg.equals("argument") || seg.equals("this") || seg.equals("that")) {
             assembly.add("@" + value);
@@ -61,7 +63,7 @@ class VMAssembler {
             assembly.add("@" + value);
             assembly.add("D=A");
             assembly.add("@SP");
-            assembly.add("M=A");
+            assembly.add("A=M");
             assembly.add("M=D");
             assembly.add("@SP");
             assembly.add("M=M+1");
@@ -78,33 +80,21 @@ class VMAssembler {
         }
 
         if(seg.equals("pointer")) {
-            if(value == 0) {
-                assembly.add("@THIS");
-                assembly.add("A=M");
-                assembly.add("D=M");
-                assembly.add("@SP");
-                assembly.add("A=M");
-                assembly.add("M=D");
-                assembly.add("@SP");
-                assembly.add("M=M+1");
-            }
-            if(value == 1) {
-                assembly.add("@THAT");
-                assembly.add("A=M");
-                assembly.add("D=M");
-                assembly.add("@SP");
-                assembly.add("A=M");
-                assembly.add("M=D");
-                assembly.add("@SP");
-                assembly.add("M=M+1");
-            }
+            assembly.add("@" + (3 + value));
+            assembly.add("D=M");
+            assembly.add("@SP");
+            assembly.add("A=M");
+            assembly.add("M=D");
+            assembly.add("@SP");
+            assembly.add("M=M+1");
         }
 
         if(seg.equals("temp")) {
             assembly.add("@5");
             assembly.add("D=A");
             assembly.add("@" + value);
-            assembly.add("D=D+A");
+            assembly.add("A=D+A");
+            assembly.add("D=M");
             assembly.add("@SP");
             assembly.add("A=M");
             assembly.add("M=D");
@@ -117,6 +107,8 @@ class VMAssembler {
 
     public static ArrayList<String> popCommand(String seg, int value) {
         ArrayList<String> assembly = new ArrayList<>();
+
+        assembly.add("// processing: pop " + seg + " " + value);
 
         if(seg.equals("local") || seg.equals("argument") || seg.equals("this") || seg.equals("that")) {
 
@@ -161,24 +153,14 @@ class VMAssembler {
         }
 
         if(seg.equals("pointer")) {
-            if(value == 0) {
                 assembly.add("@SP");
                 assembly.add("M=M-1");
                 assembly.add("A=M");
                 assembly.add("D=M");
 
-                assembly.add("@THIS");
+                assembly.add("@" + (value + 3));
                 assembly.add("M=D");
-            }
-            if(value == 1) {
-                assembly.add("@SP");
-                assembly.add("M=M-1");
-                assembly.add("A=M");
-                assembly.add("D=M");
 
-                assembly.add("@THAT");
-                assembly.add("M=D");
-            }
         }
 
         if(seg.equals("temp")) {
@@ -195,6 +177,7 @@ class VMAssembler {
             assembly.add("D=M");
 
             assembly.add("@R13");
+            assembly.add("A=M");
             assembly.add("M=D");
         }
 
@@ -242,11 +225,11 @@ class VMAssembler {
             assembly.add("@SP");
             assembly.add("M=M-1");
             assembly.add("A=M");
-            assembly.add("M=M-D");
+            assembly.add("D=M-D");
 
             if(seg.equals("eq")) {
                 assembly.add("@EQTRUE" + eqTags);
-                assembly.add("M;JEQ");
+                assembly.add("D;JEQ");
                 
                 assembly.add("@SP");
                 assembly.add("A=M");
@@ -257,14 +240,14 @@ class VMAssembler {
                 assembly.add("(EQTRUE" + eqTags + ")");
                 assembly.add("@SP");
                 assembly.add("A=M");
-                assembly.add("M=1");
+                assembly.add("M=-1");
                 
                 assembly.add("(EQEND" + eqTags + ")");
                 eqTags++;
             }
             if(seg.equals("gt")) {
                 assembly.add("@GTTRUE" + gtTags);
-                assembly.add("M;JGT");
+                assembly.add("D;JGT");
                 
                 assembly.add("@SP");
                 assembly.add("A=M");
@@ -275,14 +258,14 @@ class VMAssembler {
                 assembly.add("(GTTRUE" + gtTags + ")");
                 assembly.add("@SP");
                 assembly.add("A=M");
-                assembly.add("M=1");
+                assembly.add("M=-1");
                 
                 assembly.add("(GTEND" + gtTags + ")");
                 gtTags++;
             }
             if(seg.equals("lt")) {
                 assembly.add("@LTTRUE" + ltTags);
-                assembly.add("M;JLT");
+                assembly.add("D;JLT");
                 
                 assembly.add("@SP");
                 assembly.add("A=M");
@@ -293,7 +276,7 @@ class VMAssembler {
                 assembly.add("(LTTRUE" + ltTags + ")");
                 assembly.add("@SP");
                 assembly.add("A=M");
-                assembly.add("M=1");
+                assembly.add("M=-1");
                 
                 assembly.add("(LTEND" + ltTags + ")");
                 ltTags++;
@@ -342,13 +325,11 @@ class VMAssembler {
         progName = filePath.substring(filePath.lastIndexOf("/") + 1, filePath.lastIndexOf("."));
 
         String newFile = filePath.substring(0, filePath.lastIndexOf(".")) + ".asm";
-        System.out.println(newFile);
+        //System.out.println(newFile);
 
         ArrayList<String> assembly = convertToASM(lines);
         printFile(newFile, assembly);
 
-
-        
         //printArr(lines);
     }
 
