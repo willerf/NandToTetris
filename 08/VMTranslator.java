@@ -386,10 +386,47 @@ class VMTranslator {
     public static ArrayList<String> returnFunc() {
         ArrayList<String> assembly = new ArrayList<>();
 
+        // FRAME = LCL
+        assembly.add("@LCL");
+        assembly.add("D=M");
+        assembly.add("@FRAME");
+        assembly.add("M=D");
 
+        //RET = *(FRAME-5)
+        assembly.add("@5");
+        assembly.add("D=A");
+        assembly.add("@FRAME");
+        assembly.add("A=A-D");
+        assembly.add("D=M");
+        assembly.add("@RET");
+        assembly.add("M=D");
 
+        // *ARG = pop()
+        assembly.add("@SP");
+        assembly.add("AM=M-1");
+        assembly.add("D=M");
+        assembly.add("@ARG");
+        assembly.add("M=D");
 
+        // SP = ARG+1
+        assembly.add("@SP");
+        assembly.add("M=D+1");
 
+        String[] fix = {"THAT", "THIS", "ARG", "LCL"};
+
+        for(int i = 1; i <= fix.length; i++) {
+            assembly.add("@FRAME");
+            assembly.add("D=M");
+            assembly.add("@" + i);
+            assembly.add("AD=D-A");
+            assembly.add("D=M");
+
+            assembly.add("@" + fix[i-1]);
+            assembly.add("M=D");
+        }
+
+        assembly.add("@RET");
+        assembly.add("0;JMP");
 
         return assembly;
     }
@@ -420,6 +457,15 @@ class VMTranslator {
             }
             else if(line[0].equals("if-goto")) {
                 assembly.addAll(ifGoTo(line[1]));
+            }
+            else if(line[0].equals("call")) {
+                assembly.addAll(callFunc(line[1], Integer.parseInt(line[2])));
+            }
+            else if(line[0].equals("function")) {
+                assembly.addAll(makeFunc(line[1], Integer.parseInt(line[2])));
+            }
+            else if(line[0].equals("return")) {
+                assembly.addAll(returnFunc());
             }
             else {
                 assembly.addAll(otherCommand(line[0]));
