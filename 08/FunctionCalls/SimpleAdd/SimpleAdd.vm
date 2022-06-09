@@ -1,0 +1,9 @@
+
+// File name: projects/08/FunctionCalls/SimpleCall/SimpleCall.vm
+
+// Performs a simple addition
+function SimpleAdd.addtwo 0
+push argument 0
+push argument 1
+add
+return

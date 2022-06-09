@@ -1,0 +1,13 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/08/FunctionCalls/SimpleCall/Sys.vm
+
+// Pushes two constants onto stack, then calls SimpleAdd
+
+function Sys.init 0
+push constant 8
+push constant 13
+call SimpleAdd.addtwo 2
+label WHILE
+goto WHILE              // loops infinitely

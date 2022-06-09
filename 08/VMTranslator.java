@@ -13,8 +13,7 @@ class VMTranslator {
 
     private static String fileName = "";
     private static Stack<String> stack = new Stack<>();
-    private static int callNum = 0;
-
+    private static int retNum = 0;
 
     public static ArrayList<String[]> parseFile(File file) throws IOException {
         FileReader reader = new FileReader(file);
@@ -349,14 +348,21 @@ class VMTranslator {
     public static ArrayList<String> callFunc(String funcName, int numArgs) {
         ArrayList<String> assembly = new ArrayList<>();
 
-        String returnAddr = funcName + callNum;
-        callNum++;
+        String[] save = {"LCL", "ARG", "THIS", "THAT"};
 
-        String[] save = {returnAddr, "LCL", "ARG", "THIS", "THAT"};
+        assembly.add("@" + funcName + ".return" + retNum);
+        assembly.add("D=A");
+
+        assembly.add("@SP");
+        assembly.add("A=M");
+        assembly.add("M=D");
+
+        assembly.add("@SP");
+        assembly.add("M=M+1");
 
         for(int i = 0; i < save.length; i++) {
             assembly.add("@" + save[i]);
-            assembly.add("D=A");
+            assembly.add("D=M");
 
             assembly.add("@SP");
             assembly.add("A=M");
@@ -370,7 +376,13 @@ class VMTranslator {
         assembly.add("D=A");
 
         assembly.add("@SP");
-        assembly.add("MD=M-D");
+        assembly.add("D=M-D");
+
+        assembly.add("@ARG");
+        assembly.add("M=D");
+
+        assembly.add("@SP");
+        assembly.add("D=M");
 
         assembly.add("@LCL");
         assembly.add("M=D");
@@ -378,7 +390,9 @@ class VMTranslator {
         assembly.add("@" + funcName);
         assembly.add("0;JMP");
 
-        assembly.add("(" + returnAddr + ")");
+        assembly.add("(" + funcName + ".return" + retNum + ")");
+
+        retNum++;
 
         return assembly;
     }
@@ -396,7 +410,7 @@ class VMTranslator {
         assembly.add("@5");
         assembly.add("D=A");
         assembly.add("@FRAME");
-        assembly.add("A=A-D");
+        assembly.add("A=M-D");
         assembly.add("D=M");
         assembly.add("@RET");
         assembly.add("M=D");
@@ -406,19 +420,22 @@ class VMTranslator {
         assembly.add("AM=M-1");
         assembly.add("D=M");
         assembly.add("@ARG");
+        assembly.add("A=M");
         assembly.add("M=D");
 
         // SP = ARG+1
+        assembly.add("@ARG");
+        assembly.add("D=M");
         assembly.add("@SP");
         assembly.add("M=D+1");
 
         String[] fix = {"THAT", "THIS", "ARG", "LCL"};
 
         for(int i = 1; i <= fix.length; i++) {
-            assembly.add("@FRAME");
-            assembly.add("D=M");
             assembly.add("@" + i);
-            assembly.add("AD=D-A");
+            assembly.add("D=A");
+            assembly.add("@FRAME");
+            assembly.add("A=M-D");
             assembly.add("D=M");
 
             assembly.add("@" + fix[i-1]);
@@ -426,6 +443,7 @@ class VMTranslator {
         }
 
         assembly.add("@RET");
+        assembly.add("A=M");
         assembly.add("0;JMP");
 
         return assembly;
@@ -492,6 +510,12 @@ class VMTranslator {
         File[] files = directory.listFiles();
 
         ArrayList<String> assembly = new ArrayList<>();
+
+        assembly.add("@256");
+        assembly.add("D=A");
+        assembly.add("@SP");
+        assembly.add("M=D");
+        assembly.addAll(callFunc("Sys.init", 0));
 
         for(int i = 0; i < files.length; i++) {
             if(files[i].isFile()) {
